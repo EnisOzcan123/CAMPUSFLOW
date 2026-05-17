@@ -4,19 +4,37 @@
   </div>
 <% end %>
 
-<div class="page-header mb-4">
+<div class="page-header events-hero mb-4">
   <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
     <div>
       <p class="section-kicker mb-2">Kampüs etkinlikleri</p>
-      <h1 class="display-5 fw-bold mb-3">Yaklaşan etkinlikleri kaçırma.</h1>
+      <h1 class="display-5 fw-bold mb-3">Kampüste bugün ne var?</h1>
       <p class="lead text-muted mb-0">
-        Konserleri, kulüp buluşmalarını, söyleşileri ve kampüs duyurularını tek ekranda takip et.
+        Konserlerden kulüp buluşmalarına, ilgini çeken etkinlikleri keşfet ve kampüs planını kolayca oluştur.
       </p>
     </div>
 
     <% if admin_signed_in? %>
-      <%= link_to "Etkinlik Ekle", new_event_path, class: "btn btn-dark rounded-pill px-4 header-action" %>
+      <%= link_to new_event_path, class: "btn btn-dark rounded-pill px-4 header-action" do %>
+        <i class="bi bi-plus-lg me-2"></i>
+        Yeni etkinlik
+      <% end %>
     <% end %>
+  </div>
+
+  <div class="events-hero-stats">
+    <div>
+      <strong><%= @events.size %></strong>
+      <span>yaklaşan etkinlik</span>
+    </div>
+    <div>
+      <strong><%= @event_types.reject(&:blank?).size %></strong>
+      <span>farklı kategori</span>
+    </div>
+    <div>
+      <strong><%= @events.count(&:ticket_required?) %></strong>
+      <span>biletli program</span>
+    </div>
   </div>
 </div>
 
@@ -24,7 +42,7 @@
   <%= form_with url: events_path, method: :get, class: "row g-3 align-items-end" do |form| %>
     <div class="col-12 col-lg-5">
       <%= form.label :query, "Ara", class: "form-label fw-semibold" %>
-      <%= form.search_field :query, value: params[:query], class: "form-control", placeholder: "Etkinlik adı, açıklama veya konum ara" %>
+      <%= form.search_field :query, value: params[:query], class: "form-control", placeholder: "Konser, söyleşi, kulüp ya da konum ara" %>
     </div>
 
     <div class="col-12 col-lg-4">
@@ -36,8 +54,8 @@
     </div>
 
     <div class="col-12 col-lg-3 d-flex gap-2">
-      <%= form.submit "Filtrele", class: "btn btn-dark rounded-pill flex-fill" %>
-      <%= link_to "Sıfırla", events_path, class: "btn btn-outline-dark rounded-pill flex-fill" %>
+      <%= form.submit "Uygula", class: "btn btn-dark rounded-pill flex-fill" %>
+      <%= link_to "Temizle", events_path, class: "btn btn-outline-dark rounded-pill flex-fill" %>
     </div>
   <% end %>
 </div>
@@ -58,10 +76,11 @@
             </div>
 
             <h2 class="h4 fw-bold mb-2"><%= event.title %></h2>
-            <p class="text-muted"><%= truncate(event.description, length: 120) %></p>
+            <p class="event-card-copy"><%= truncate(event.description, length: 120) %></p>
 
             <div class="event-location mb-4">
-              <strong>Konum:</strong> <%= event.location %>
+              <i class="bi bi-geo-alt-fill"></i>
+              <span><%= event.location %></span>
             </div>
 
             <div class="event-ticket-summary mb-4">
@@ -74,7 +93,10 @@
               <% end %>
             </div>
 
-            <%= link_to "Detayları Gör", event_path(event), class: "btn btn-outline-dark rounded-pill w-100" %>
+            <%= link_to event_path(event), class: "btn btn-outline-dark rounded-pill w-100" do %>
+              İncele
+              <i class="bi bi-arrow-right ms-2"></i>
+            <% end %>
           </div>
         </div>
       </div>
@@ -82,10 +104,10 @@
   </div>
 <% else %>
   <div class="bg-white border rounded-3 p-5 text-center shadow-sm">
-    <h2 class="h4 fw-bold">Yaklaşan etkinlik yok</h2>
-    <p class="text-muted mb-4">Kampüste yeni bir etkinlik planlandığında buraya eklenebilir.</p>
+    <h2 class="h4 fw-bold">Şimdilik listede etkinlik yok</h2>
+    <p class="text-muted mb-4">Yeni bir program eklendiğinde burada görünecek.</p>
     <% if admin_signed_in? %>
-      <%= link_to "Etkinlik Oluştur", new_event_path, class: "btn btn-dark rounded-pill px-4" %>
+      <%= link_to "Yeni etkinlik ekle", new_event_path, class: "btn btn-dark rounded-pill px-4" %>
     <% end %>
   </div>
 <% end %>

@@ -1,13 +1,44 @@
 <% content_for :head do %>
 <% end %>
 
-<div class="page-header mb-4">
-  <div>
-    <p class="section-kicker mb-2">Kampüs haritası</p>
-    <h1 class="display-5 fw-bold mb-3">Atatürk Üniversitesi içinde yolunu bul.</h1>
-    <p class="lead text-muted mb-0">
-      Mekanları ve yaklaşan etkinlikleri gerçek harita üzerinde incele.
-    </p>
+<div class="page-header map-hero mb-4">
+  <div class="map-hero-main">
+    <div>
+      <p class="section-kicker mb-2">Kampüs haritası</p>
+      <h1 class="display-5 fw-bold mb-3">Kampüste aradığın noktayı kolayca bul.</h1>
+      <p class="lead text-muted mb-0">
+        Çalışma alanlarını, etkinlik yerlerini ve konumuna göre yol tarifini sade bir harita üzerinde incele.
+      </p>
+    </div>
+
+    <div class="map-hero-visual" aria-hidden="true">
+      <div class="map-visual-line"></div>
+      <span class="map-visual-point point-start"></span>
+      <span class="map-visual-point point-mid"></span>
+      <span class="map-visual-point point-end"></span>
+      <div class="map-visual-card">
+        <i class="bi bi-signpost-2-fill"></i>
+        <span>Yol tarifi hazır</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="map-hero-stats">
+    <div>
+      <i class="bi bi-building"></i>
+      <strong><%= @places.size %></strong>
+      <span>Mekan haritada kayıtlı</span>
+    </div>
+    <div>
+      <i class="bi bi-calendar-event"></i>
+      <strong><%= @events.size %></strong>
+      <span>Etkinlik alanı gösteriliyor</span>
+    </div>
+    <div>
+      <i class="bi bi-geo-alt-fill"></i>
+      <strong>Yol tarifi</strong>
+      <span>Konumuna göre hazırlanır</span>
+    </div>
   </div>
 </div>
 
@@ -53,8 +84,11 @@
   </div>
 
   <div class="col-12 col-lg-4">
-    <div class="bg-white border rounded-3 shadow-sm p-4 mb-4">
-      <h2 class="h5 fw-bold mb-3">Haritadaki Mekanlar</h2>
+    <div class="map-side-panel mb-4">
+      <div class="map-panel-heading">
+        <p class="section-kicker mb-1">Yakındaki noktalar</p>
+        <h2 class="h5 fw-bold mb-0">Haritadaki mekanlar</h2>
+      </div>
 
       <div class="map-list">
         <% @places.each do |place| %>
@@ -66,8 +100,11 @@
       </div>
     </div>
 
-    <div class="bg-white border rounded-3 shadow-sm p-4">
-      <h2 class="h5 fw-bold mb-3">Etkinlik Pinleri</h2>
+    <div class="map-side-panel">
+      <div class="map-panel-heading">
+        <p class="section-kicker mb-1">Yaklaşan programlar</p>
+        <h2 class="h5 fw-bold mb-0">Haritadaki etkinlikler</h2>
+      </div>
 
       <div class="map-list">
         <% @events.each do |event| %>
@@ -137,7 +174,7 @@
     let routeLine = null;
 
     function routePopupButton(targetType, targetId) {
-      return `<button type="button" class="map-popup-route" data-route-type="${targetType}" data-route-id="${targetId}">Konumumdan rota çiz</button>`;
+      return `<button type="button" class="map-popup-route" data-route-type="${targetType}" data-route-id="${targetId}">Konumuma göre yol tarifi</button>`;
     }
 
     places.forEach((place) => {
@@ -261,7 +298,7 @@
       list.innerHTML = `
         <li>
           <strong>Yol tarifi servisi şu an cevap vermedi</strong>
-          <span>Konumun ve hedef pin haritada işaretlendi. Tekrar denemek için rota butonuna yeniden bas.</span>
+          <span>Konumun ve hedef nokta haritada gösterildi. Tekrar denemek için yol tarifi düğmesine yeniden bas.</span>
         </li>
       `;
       panel.classList.remove("d-none");
@@ -350,7 +387,7 @@
       onAdd: function () {
         const button = L.DomUtil.create("button", "leaflet-route-button");
         button.type = "button";
-        button.innerText = "Konumumu bul ve rota çiz";
+        button.innerText = "Konumuma göre yol tarifi";
         L.DomEvent.disableClickPropagation(button);
         L.DomEvent.on(button, "click", locateAndRoute);
         return button;

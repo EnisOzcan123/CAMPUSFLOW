@@ -4,46 +4,41 @@
   </div>
 <% end %>
 
-<div class="page-header mb-4">
+<div class="page-header places-hero mb-4">
   <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
     <div>
       <p class="section-kicker mb-2">Kampüs keşfi</p>
-      <h1 class="display-5 fw-bold mb-3">Kampüste sana uygun mekanı bul.</h1>
+      <h1 class="display-5 fw-bold mb-3">Bugün nerede çalışsak?</h1>
       <p class="lead text-muted mb-0">
-        Sessiz çalışma alanlarını, güçlü WiFi noktalarını ve kampüs içindeki kullanışlı mekanları karşılaştır.
+        Sessiz köşeleri, güçlü WiFi noktalarını ve kampüste vakit geçirmeye değer alanları tek yerden keşfet.
       </p>
     </div>
 
     <% if admin_signed_in? %>
-      <%= link_to "Mekan Ekle", new_place_path, class: "btn btn-dark rounded-pill px-4 header-action" %>
+      <%= link_to new_place_path, class: "btn btn-dark rounded-pill px-4 header-action" do %>
+        <i class="bi bi-plus-lg me-2"></i>
+        Yeni mekan
+      <% end %>
     <% end %>
   </div>
-</div>
 
-<div class="row g-3 mb-4">
-  <div class="col-6 col-lg-3">
-    <div class="metric-tile">
+  <div class="places-hero-stats">
+    <div>
       <span>Toplam mekan</span>
       <strong><%= @total_places %></strong>
     </div>
-  </div>
 
-  <div class="col-6 col-lg-3">
-    <div class="metric-tile">
+    <div>
       <span>Ortalama WiFi</span>
       <strong><%= @average_wifi_score %>/10</strong>
     </div>
-  </div>
 
-  <div class="col-6 col-lg-3">
-    <div class="metric-tile">
+    <div>
       <span>Ortalama sessizlik</span>
       <strong><%= @average_quiet_score %>/10</strong>
     </div>
-  </div>
 
-  <div class="col-6 col-lg-3">
-    <div class="metric-tile">
+    <div>
       <span>En sessiz</span>
       <strong class="metric-name"><%= @quietest_place&.name || "Henüz yok" %></strong>
     </div>
@@ -54,7 +49,7 @@
   <%= form_with url: places_path, method: :get, class: "row g-3 align-items-end" do |form| %>
     <div class="col-12 col-lg-5">
       <%= form.label :query, "Ara", class: "form-label fw-semibold" %>
-      <%= form.search_field :query, value: params[:query], class: "form-control", placeholder: "İsim veya açıklamaya göre ara" %>
+      <%= form.search_field :query, value: params[:query], class: "form-control", placeholder: "Kütüphane, kafe, çalışma alanı ya da açıklama ara" %>
     </div>
 
     <div class="col-12 col-lg-4">
@@ -66,8 +61,8 @@
     </div>
 
     <div class="col-12 col-lg-3 d-flex gap-2">
-      <%= form.submit "Filtrele", class: "btn btn-dark rounded-pill flex-fill" %>
-      <%= link_to "Sıfırla", places_path, class: "btn btn-outline-dark rounded-pill flex-fill" %>
+      <%= form.submit "Uygula", class: "btn btn-dark rounded-pill flex-fill" %>
+      <%= link_to "Temizle", places_path, class: "btn btn-outline-dark rounded-pill flex-fill" %>
     </div>
   <% end %>
 </div>
@@ -78,7 +73,7 @@
       <p class="section-kicker mb-1">Kampüste neler var?</p>
       <h2 class="h4 fw-bold mb-0">Yaklaşan etkinlikler</h2>
     </div>
-    <%= link_to "Tüm etkinlikler", events_path, class: "btn btn-outline-dark rounded-pill" %>
+    <%= link_to "Etkinlikleri incele", events_path, class: "btn btn-outline-dark rounded-pill" %>
   </div>
 
   <div class="row g-3 mb-4">
@@ -99,7 +94,7 @@
     <p class="section-kicker mb-1">Mekan rehberi</p>
     <h2 class="h4 fw-bold mb-0">Kampüs mekanları</h2>
   </div>
-  <%= link_to "Haritada Gör", campus_map_path, class: "btn btn-outline-dark rounded-pill" %>
+  <%= link_to "Haritada gör", campus_map_path, class: "btn btn-outline-dark rounded-pill" %>
 </div>
 
 <% if @places.any? %>
@@ -118,7 +113,7 @@
               <%= place.name %>
             </h2>
 
-            <p class="text-muted">
+            <p class="place-card-copy">
               <%= truncate(place.description, length: 120) %>
             </p>
 
@@ -144,7 +139,10 @@
               </div>
             </div>
 
-            <%= link_to "Detayları Gör", place_path(place), class: "btn btn-outline-dark rounded-pill w-100 stretched-link-safe" %>
+            <%= link_to place_path(place), class: "btn btn-outline-dark rounded-pill w-100 stretched-link-safe" do %>
+              İncele
+              <i class="bi bi-arrow-right ms-2"></i>
+            <% end %>
           </div>
         </div>
       </div>
@@ -152,10 +150,10 @@
   </div>
 <% else %>
   <div class="bg-white border rounded-3 p-5 text-center shadow-sm">
-    <h2 class="h4 fw-bold">Henüz mekan yok</h2>
-    <p class="text-muted mb-4">Rehberi oluşturmaya başlamak için ilk kampüs mekanını ekle.</p>
+    <h2 class="h4 fw-bold">Şimdilik rehberde mekan yok</h2>
+    <p class="text-muted mb-4">İlk kampüs noktası eklendiğinde burada görünecek.</p>
     <% if admin_signed_in? %>
-      <%= link_to "İlk Mekanı Oluştur", new_place_path, class: "btn btn-dark rounded-pill px-4" %>
+      <%= link_to "İlk mekanı ekle", new_place_path, class: "btn btn-dark rounded-pill px-4" %>
     <% end %>
   </div>
 <% end %>
