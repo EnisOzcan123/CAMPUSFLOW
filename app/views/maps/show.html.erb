@@ -1,0 +1,386 @@
+<% content_for :head do %>
+<% end %>
+
+<div class="page-header mb-4">
+  <div>
+    <p class="section-kicker mb-2">Kampüs haritası</p>
+    <h1 class="display-5 fw-bold mb-3">Atatürk Üniversitesi içinde yolunu bul.</h1>
+    <p class="lead text-muted mb-0">
+      Mekanları ve yaklaşan etkinlikleri gerçek harita üzerinde incele.
+    </p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-12 col-lg-8">
+    <div
+      id="campus-leaflet-map"
+      class="leaflet-campus-map"
+      style="min-height: 560px;"
+      data-selected-place-id="<%= @selected_place&.id %>"
+      data-places="<%= json_escape(@places.map { |place|
+        {
+          id: place.id,
+          name: place.name,
+          category: place.category,
+          location: place.location_label,
+          latitude: place.latitude.to_f,
+          longitude: place.longitude.to_f,
+          url: place_path(place)
+        }
+      }.to_json) %>"
+      data-events="<%= json_escape(@events.map { |event|
+        {
+          id: event.id,
+          title: event.title,
+          event_type: event.event_type,
+          starts_at: l(event.starts_at, format: :short),
+          location: event.location,
+          latitude: event.place.latitude.to_f,
+          longitude: event.place.longitude.to_f,
+          url: event_path(event)
+        }
+      }.to_json) %>"
+    ></div>
+
+    <div id="route-instructions" class="route-instructions mt-3 d-none">
+      <div class="d-flex justify-content-between align-items-center gap-3 mb-2">
+        <h2 class="h5 fw-bold mb-0">Yol Tarifi</h2>
+        <span id="route-summary" class="text-muted fw-semibold"></span>
+      </div>
+      <ol id="route-steps" class="mb-0"></ol>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-4">
+    <div class="bg-white border rounded-3 shadow-sm p-4 mb-4">
+      <h2 class="h5 fw-bold mb-3">Haritadaki Mekanlar</h2>
+
+      <div class="map-list">
+        <% @places.each do |place| %>
+          <%= link_to campus_map_path(place_id: place.id), class: "map-list-item #{'active' if @selected_place == place}" do %>
+            <strong><%= place.name %></strong>
+            <span><%= place.category %> · <%= place.location_label %></span>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="bg-white border rounded-3 shadow-sm p-4">
+      <h2 class="h5 fw-bold mb-3">Etkinlik Pinleri</h2>
+
+      <div class="map-list">
+        <% @events.each do |event| %>
+          <%= link_to event_path(event), class: "map-list-item" do %>
+            <strong><%= event.title %></strong>
+            <span><%= event.event_type %> · <%= l(event.starts_at, format: :short) %></span>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import * as L from "<%= asset_path('leaflet-esm.js') %>";
+
+  function initializeCampusLeafletMap() {
+    const mapElement = document.getElementById("campus-leaflet-map");
+    if (!mapElement || mapElement.dataset.initialized === "true") return;
+
+    mapElement.dataset.initialized = "true";
+
+    const places = JSON.parse(mapElement.dataset.places || "[]");
+    const events = JSON.parse(mapElement.dataset.events || "[]");
+    const selectedPlaceId = Number(mapElement.dataset.selectedPlaceId);
+    const campusCenter = [39.904583, 41.255474];
+    const map = L.map(mapElement, {
+      scrollWheelZoom: false
+    }).setView(campusCenter, 15);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap katkıda bulunanlar"
+    }).addTo(map);
+
+    const placeIcon = L.divIcon({
+      className: "leaflet-campus-pin place-pin",
+      html: "<span></span>",
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    });
+
+    const eventIcon = L.divIcon({
+      className: "leaflet-campus-pin event-pin",
+      html: "<span></span>",
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    });
+
+    const selectedIcon = L.divIcon({
+      className: "leaflet-campus-pin selected-place-pin",
+      html: "<span></span>",
+      iconSize: [34, 34],
+      iconAnchor: [17, 17]
+    });
+
+    const userIcon = L.divIcon({
+      className: "leaflet-campus-pin user-location-pin",
+      html: "<span></span>",
+      iconSize: [26, 26],
+      iconAnchor: [13, 13]
+    });
+
+    const placeMarkers = new Map();
+    let routeTarget = null;
+    let userMarker = null;
+    let routeLine = null;
+
+    function routePopupButton(targetType, targetId) {
+      return `<button type="button" class="map-popup-route" data-route-type="${targetType}" data-route-id="${targetId}">Konumumdan rota çiz</button>`;
+    }
+
+    places.forEach((place) => {
+      const isSelected = selectedPlaceId === place.id;
+      const marker = L.marker([place.latitude, place.longitude], { icon: isSelected ? selectedIcon : placeIcon })
+        .addTo(map)
+        .bindPopup(`
+          <strong>${place.name}</strong><br>
+          ${place.category}<br>
+          <small>${place.location || ""}</small><br>
+          <a href="${place.url}">Detayları Gör</a>
+          ${routePopupButton("place", place.id)}
+        `);
+
+      marker.on("click", () => {
+        routeTarget = {
+          label: place.name,
+          latLng: L.latLng(place.latitude, place.longitude)
+        };
+      });
+
+      placeMarkers.set(place.id, marker);
+    });
+
+    events.forEach((event) => {
+      L.marker([event.latitude, event.longitude], { icon: eventIcon })
+        .addTo(map)
+        .bindPopup(`
+          <strong>${event.title}</strong><br>
+          ${event.event_type} · ${event.starts_at}<br>
+          <small>${event.location}</small><br>
+          <a href="${event.url}">Etkinliği Gör</a>
+          ${routePopupButton("event", event.id)}
+        `);
+    });
+
+    if (selectedPlaceId && placeMarkers.has(selectedPlaceId)) {
+      const selectedMarker = placeMarkers.get(selectedPlaceId);
+      const selectedPlace = places.find((place) => place.id === selectedPlaceId);
+      routeTarget = {
+        label: selectedPlace?.name || "Seçili mekan",
+        latLng: selectedMarker.getLatLng()
+      };
+      map.setView(selectedMarker.getLatLng(), 17);
+      selectedMarker.openPopup();
+    }
+
+    function setRouteTargetFromDataset(routeType, routeId) {
+      if (routeType === "place") {
+        const place = places.find((item) => item.id === Number(routeId));
+        if (!place) return;
+        routeTarget = { label: place.name, latLng: L.latLng(place.latitude, place.longitude) };
+      }
+
+      if (routeType === "event") {
+        const event = events.find((item) => item.id === Number(routeId));
+        if (!event) return;
+        routeTarget = { label: event.title, latLng: L.latLng(event.latitude, event.longitude) };
+      }
+    }
+
+    function instructionText(step) {
+      const modifierMap = {
+        left: "sola dön",
+        right: "sağa dön",
+        slight_left: "hafif sola dön",
+        slight_right: "hafif sağa dön",
+        straight: "düz devam et",
+        uturn: "geri dön"
+      };
+
+      const typeMap = {
+        depart: "Başlangıç noktasından hareket et",
+        arrive: "Hedefe var",
+        turn: modifierMap[step.maneuver.modifier] || "dön",
+        continue: "düz devam et",
+        "new name": "devam et",
+        merge: "yola katıl",
+        fork: "ayrımdan devam et",
+        "end of road": "yol sonunda devam et",
+        roundabout: "döner kavşaktan çık",
+        rotary: "döner kavşaktan çık"
+      };
+
+      const base = typeMap[step.maneuver.type] || "devam et";
+      return step.name ? `${base}: ${step.name}` : base;
+    }
+
+    function formatDistance(meters) {
+      if (meters >= 1000) return `${(meters / 1000).toFixed(1)} km`;
+      return `${Math.round(meters)} m`;
+    }
+
+    function renderRouteInstructions(route) {
+      const panel = document.getElementById("route-instructions");
+      const list = document.getElementById("route-steps");
+      const summary = document.getElementById("route-summary");
+
+      if (!panel || !list || !summary) return;
+
+      const steps = route.legs?.flatMap((leg) => leg.steps || []) || [];
+      summary.innerText = `${formatDistance(route.distance)} · ${Math.round(route.duration / 60)} dk`;
+      list.innerHTML = steps.map((step) => `
+        <li>
+          <strong>${instructionText(step)}</strong>
+          <span>${formatDistance(step.distance)}</span>
+        </li>
+      `).join("");
+      panel.classList.remove("d-none");
+    }
+
+    function renderFallbackInstruction(userLatLng, targetLatLng) {
+      const panel = document.getElementById("route-instructions");
+      const list = document.getElementById("route-steps");
+      const summary = document.getElementById("route-summary");
+
+      if (!panel || !list || !summary) return;
+
+      const distance = userLatLng.distanceTo(targetLatLng);
+      summary.innerText = `${formatDistance(distance)} · servis yok`;
+      list.innerHTML = `
+        <li>
+          <strong>Yol tarifi servisi şu an cevap vermedi</strong>
+          <span>Konumun ve hedef pin haritada işaretlendi. Tekrar denemek için rota butonuna yeniden bas.</span>
+        </li>
+      `;
+      panel.classList.remove("d-none");
+    }
+
+    async function buildRoute(userLatLng, targetLatLng) {
+      const start = `${userLatLng.lng},${userLatLng.lat}`;
+      const finish = `${targetLatLng.lng},${targetLatLng.lat}`;
+      const url = `https://router.project-osrm.org/route/v1/driving/${start};${finish}?overview=full&geometries=geojson&steps=true`;
+
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Rota servisi yanıt vermedi");
+
+        const data = await response.json();
+        const route = data.routes?.[0];
+        const coordinates = route?.geometry?.coordinates;
+        if (!route || !coordinates) throw new Error("Rota bulunamadı");
+
+        return {
+          coordinates: coordinates.map((coordinate) => [coordinate[1], coordinate[0]]),
+          route
+        };
+      } catch (_) {
+        return {
+          coordinates: [],
+          route: null
+        };
+      }
+    }
+
+    async function drawRoute(userLatLng) {
+      if (!routeTarget) {
+        alert("Rota çizmek için önce haritada bir mekan veya etkinlik seç.");
+        return;
+      }
+
+      if (routeLine) {
+        map.removeLayer(routeLine);
+        routeLine = null;
+      }
+
+      const routeResult = await buildRoute(userLatLng, routeTarget.latLng);
+      if (routeResult.route) {
+        routeLine = L.polyline(routeResult.coordinates, {
+          color: "#2f6f5e",
+          weight: 5,
+          opacity: 0.85
+        }).addTo(map);
+        map.fitBounds(routeLine.getBounds(), { padding: [44, 44] });
+        renderRouteInstructions(routeResult.route);
+      } else {
+        map.fitBounds(L.latLngBounds([userLatLng, routeTarget.latLng]), { padding: [44, 44] });
+        renderFallbackInstruction(userLatLng, routeTarget.latLng);
+      }
+    }
+
+    function locateAndRoute() {
+      if (!navigator.geolocation) {
+        alert("Tarayıcın konum özelliğini desteklemiyor.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition((position) => {
+        const userLatLng = L.latLng(position.coords.latitude, position.coords.longitude);
+
+        if (userMarker) {
+          userMarker.setLatLng(userLatLng);
+        } else {
+          userMarker = L.marker(userLatLng, { icon: userIcon })
+            .addTo(map)
+            .bindPopup("<strong>Benim konumum</strong>");
+        }
+
+        drawRoute(userLatLng);
+      }, () => {
+        alert("Konum alınamadı. Tarayıcıdan konum izni verdiğinden emin ol.");
+      }, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 30000
+      });
+    }
+
+    const LocateControl = L.Control.extend({
+      onAdd: function () {
+        const button = L.DomUtil.create("button", "leaflet-route-button");
+        button.type = "button";
+        button.innerText = "Konumumu bul ve rota çiz";
+        L.DomEvent.disableClickPropagation(button);
+        L.DomEvent.on(button, "click", locateAndRoute);
+        return button;
+      }
+    });
+
+    map.addControl(new LocateControl({ position: "topright" }));
+
+    mapElement.addEventListener("click", (event) => {
+      const routeButton = event.target.closest(".map-popup-route");
+      if (!routeButton) return;
+
+      setRouteTargetFromDataset(routeButton.dataset.routeType, routeButton.dataset.routeId);
+      locateAndRoute();
+    });
+
+    setTimeout(() => map.invalidateSize(), 100);
+  }
+
+  function safeInitializeCampusLeafletMap() {
+    try {
+      initializeCampusLeafletMap();
+    } catch (error) {
+      const mapElement = document.getElementById("campus-leaflet-map");
+      if (mapElement) mapElement.dataset.error = error.message;
+      console.error(error);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", safeInitializeCampusLeafletMap);
+  document.addEventListener("turbo:load", safeInitializeCampusLeafletMap);
+  safeInitializeCampusLeafletMap();
+</script>

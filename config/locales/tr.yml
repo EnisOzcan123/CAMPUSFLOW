@@ -1,0 +1,83 @@
+tr:
+  date:
+    formats:
+      default: "%d.%m.%Y"
+      short: "%d %b"
+      long: "%d %B %Y"
+    month_names:
+      - 
+      - Ocak
+      - Şubat
+      - Mart
+      - Nisan
+      - Mayıs
+      - Haziran
+      - Temmuz
+      - Ağustos
+      - Eylül
+      - Ekim
+      - Kasım
+      - Aralık
+    abbr_month_names:
+      - 
+      - Oca
+      - Şub
+      - Mar
+      - Nis
+      - May
+      - Haz
+      - Tem
+      - Ağu
+      - Eyl
+      - Eki
+      - Kas
+      - Ara
+  time:
+    formats:
+      short: "%d %b %H:%M"
+      long: "%d %B %Y, %H:%M"
+  activerecord:
+    models:
+      place: "Mekan"
+    attributes:
+      place:
+        name: "Mekan adı"
+        category: "Kategori"
+        description: "Açıklama"
+        wifi_score: "WiFi puanı"
+        quiet_score: "Sessizlik puanı"
+      user:
+        name: "Ad soyad"
+        email: "E-posta"
+        role: "Hesap türü"
+        password: "Şifre"
+        password_confirmation: "Şifre tekrarı"
+      event:
+        title: "Etkinlik adı"
+        event_type: "Etkinlik türü"
+        description: "Açıklama"
+        starts_at: "Başlangıç zamanı"
+        location: "Konum"
+        place: "Bağlı mekan"
+      ticket:
+        quantity: "Bilet adedi"
+        total_price: "Toplam tutar"
+        card_holder_name: "Kart üzerindeki ad soyad"
+        card_number: "Kart numarası"
+        expiry_month: "Son kullanma ayı"
+        expiry_year: "Son kullanma yılı"
+        cvv: "CVV"
+        payer_iban: "IBAN"
+  errors:
+    messages:
+      blank: "boş bırakılamaz"
+      not_a_number: "sayı olmalıdır"
+      not_an_integer: "tam sayı olmalıdır"
+      inclusion: "geçerli aralıkta olmalıdır"
+      too_short: "çok kısa"
+      taken: "zaten kullanılıyor"
+      confirmation: "eşleşmiyor"
+  helpers:
+    submit:
+      create: "Oluştur"
+      update: "Güncelle"

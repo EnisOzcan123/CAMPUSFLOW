@@ -1,0 +1,117 @@
+<div class="admin-hero mb-4">
+  <div>
+    <p class="section-kicker mb-2">Admin paneli</p>
+    <h1 class="display-5 fw-bold mb-3">CampusFlow yönetimi</h1>
+    <p class="lead mb-0">
+      Etkinlikleri, mekanları, kullanıcıları ve bilet kayıtlarını tek yerden takip et.
+    </p>
+  </div>
+
+  <div class="admin-hero-actions">
+    <%= link_to "Etkinlik Ekle", new_event_path, class: "btn btn-light rounded-pill px-4" %>
+    <%= link_to "Mekan Ekle", new_place_path, class: "btn btn-outline-light rounded-pill px-4" %>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3">
+    <div class="admin-metric">
+      <span>Kullanıcı</span>
+      <strong><%= @total_users %></strong>
+    </div>
+  </div>
+
+  <div class="col-6 col-xl-3">
+    <div class="admin-metric">
+      <span>Mekan</span>
+      <strong><%= @total_places %></strong>
+    </div>
+  </div>
+
+  <div class="col-6 col-xl-3">
+    <div class="admin-metric">
+      <span>Etkinlik</span>
+      <strong><%= @total_events %></strong>
+    </div>
+  </div>
+
+  <div class="col-6 col-xl-3">
+    <div class="admin-metric">
+      <span>Bilet geliri</span>
+      <strong><%= number_to_currency(@ticket_revenue, unit: "₺", format: "%n %u") %></strong>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-12 col-xl-7">
+    <section class="admin-panel">
+      <div class="admin-panel-header">
+        <div>
+          <span>Etkinlik yönetimi</span>
+          <h2>Son etkinlikler</h2>
+        </div>
+        <%= link_to "Tüm etkinlikler", events_path, class: "btn btn-outline-dark rounded-pill" %>
+      </div>
+
+      <div class="admin-list">
+        <% @recent_events.each do |event| %>
+          <div class="admin-list-item">
+            <div>
+              <strong><%= event.title %></strong>
+              <span><%= event.event_type %> · <%= l(event.starts_at, format: :short) %></span>
+            </div>
+            <div class="admin-list-actions">
+              <%= link_to "Düzenle", edit_event_path(event), class: "btn btn-sm btn-dark rounded-pill" %>
+              <%= link_to "Gör", event_path(event), class: "btn btn-sm btn-outline-dark rounded-pill" %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  </div>
+
+  <div class="col-12 col-xl-5">
+    <section class="admin-panel mb-4">
+      <div class="admin-panel-header">
+        <div>
+          <span>Kullanıcılar</span>
+          <h2>Son kayıtlar</h2>
+        </div>
+      </div>
+
+      <div class="admin-list">
+        <% @recent_users.each do |user| %>
+          <div class="admin-list-item">
+            <div>
+              <strong><%= user.name %></strong>
+              <span><%= user.email %> · <%= user.role_name %></span>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </section>
+
+    <section class="admin-panel">
+      <div class="admin-panel-header">
+        <div>
+          <span>Mekanlar</span>
+          <h2>Son eklenenler</h2>
+        </div>
+        <%= link_to "Mekanlar", places_path, class: "btn btn-outline-dark rounded-pill" %>
+      </div>
+
+      <div class="admin-list">
+        <% @recent_places.each do |place| %>
+          <div class="admin-list-item">
+            <div>
+              <strong><%= place.name %></strong>
+              <span><%= place.category %></span>
+            </div>
+            <%= link_to "Düzenle", edit_place_path(place), class: "btn btn-sm btn-dark rounded-pill" %>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  </div>
+</div>

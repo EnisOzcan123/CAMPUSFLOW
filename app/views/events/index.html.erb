@@ -1,0 +1,91 @@
+<% if notice.present? %>
+  <div class="alert alert-success rounded-3 border-0 shadow-sm">
+    <%= notice %>
+  </div>
+<% end %>
+
+<div class="page-header mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
+    <div>
+      <p class="section-kicker mb-2">Kampüs etkinlikleri</p>
+      <h1 class="display-5 fw-bold mb-3">Yaklaşan etkinlikleri kaçırma.</h1>
+      <p class="lead text-muted mb-0">
+        Konserleri, kulüp buluşmalarını, söyleşileri ve kampüs duyurularını tek ekranda takip et.
+      </p>
+    </div>
+
+    <% if admin_signed_in? %>
+      <%= link_to "Etkinlik Ekle", new_event_path, class: "btn btn-dark rounded-pill px-4 header-action" %>
+    <% end %>
+  </div>
+</div>
+
+<div class="filter-panel mb-4">
+  <%= form_with url: events_path, method: :get, class: "row g-3 align-items-end" do |form| %>
+    <div class="col-12 col-lg-5">
+      <%= form.label :query, "Ara", class: "form-label fw-semibold" %>
+      <%= form.search_field :query, value: params[:query], class: "form-control", placeholder: "Etkinlik adı, açıklama veya konum ara" %>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <%= form.label :event_type, "Etkinlik türü", class: "form-label fw-semibold" %>
+      <%= form.select :event_type,
+          options_for_select(@event_types, params[:event_type]),
+          { include_blank: "Tüm etkinlikler" },
+          class: "form-select" %>
+    </div>
+
+    <div class="col-12 col-lg-3 d-flex gap-2">
+      <%= form.submit "Filtrele", class: "btn btn-dark rounded-pill flex-fill" %>
+      <%= link_to "Sıfırla", events_path, class: "btn btn-outline-dark rounded-pill flex-fill" %>
+    </div>
+  <% end %>
+</div>
+
+<% if @events.any? %>
+  <div class="row g-4">
+    <% @events.each do |event| %>
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="card event-card h-100 border-0">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+              <span class="category-pill rounded-pill px-3 py-2">
+                <%= event.event_type %>
+              </span>
+              <span class="event-date text-end">
+                <%= l(event.starts_at, format: :short) %>
+              </span>
+            </div>
+
+            <h2 class="h4 fw-bold mb-2"><%= event.title %></h2>
+            <p class="text-muted"><%= truncate(event.description, length: 120) %></p>
+
+            <div class="event-location mb-4">
+              <strong>Konum:</strong> <%= event.location %>
+            </div>
+
+            <div class="event-ticket-summary mb-4">
+              <% if event.ticket_required? %>
+                <i class="bi bi-ticket-perforated-fill"></i>
+                <span><%= number_to_currency(event.ticket_price, unit: "₺", format: "%n %u") %></span>
+              <% else %>
+                <i class="bi bi-check2-circle"></i>
+                <span>Ücretsiz</span>
+              <% end %>
+            </div>
+
+            <%= link_to "Detayları Gör", event_path(event), class: "btn btn-outline-dark rounded-pill w-100" %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="bg-white border rounded-3 p-5 text-center shadow-sm">
+    <h2 class="h4 fw-bold">Yaklaşan etkinlik yok</h2>
+    <p class="text-muted mb-4">Kampüste yeni bir etkinlik planlandığında buraya eklenebilir.</p>
+    <% if admin_signed_in? %>
+      <%= link_to "Etkinlik Oluştur", new_event_path, class: "btn btn-dark rounded-pill px-4" %>
+    <% end %>
+  </div>
+<% end %>

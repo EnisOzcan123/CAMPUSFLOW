@@ -1,0 +1,65 @@
+<%= form_with(model: place, class: "bg-white border rounded-3 shadow-sm p-4 p-md-5") do |form| %>
+  <% if place.errors.any? %>
+    <div class="alert alert-danger rounded-3">
+      <h2 class="h5 fw-bold">Bu mekan kaydedilemedi. Lütfen aşağıdaki alanları kontrol et:</h2>
+
+      <ul>
+        <% place.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= form.label :name, "Mekan adı", class: "form-label fw-semibold" %>
+    <%= form.text_field :name, class: "form-control form-control-lg", placeholder: "Merkez Kütüphane" %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :category, "Kategori", class: "form-label fw-semibold" %>
+    <%= form.select :category,
+        ["Kütüphane", "Kafe", "Çalışma Alanı", "Açık Alan", "Yemekhane", "Laboratuvar", "Diğer"],
+        { prompt: "Kategori seç" },
+        class: "form-select form-select-lg" %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :description, "Açıklama", class: "form-label fw-semibold" %>
+    <%= form.text_area :description, rows: 5, class: "form-control", placeholder: "Bu mekanı kullanışlı yapan özellikleri yaz." %>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <%= form.label :wifi_score, "WiFi puanı", class: "form-label fw-semibold" %>
+      <%= form.number_field :wifi_score, min: 1, max: 10, class: "form-control", placeholder: "1-10" %>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <%= form.label :quiet_score, "Sessizlik puanı", class: "form-label fw-semibold" %>
+      <%= form.number_field :quiet_score, min: 1, max: 10, class: "form-control", placeholder: "1-10" %>
+    </div>
+  </div>
+
+  <div class="row g-3 mt-1">
+    <div class="col-12 col-md-6">
+      <%= form.label :location_label, "Harita konumu", class: "form-label fw-semibold" %>
+      <%= form.text_field :location_label, class: "form-control", placeholder: "Kuzey kampüs, A blok yanı" %>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <%= form.label :map_x, "Harita X", class: "form-label fw-semibold" %>
+      <%= form.number_field :map_x, min: 0, max: 100, class: "form-control", placeholder: "0-100" %>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <%= form.label :map_y, "Harita Y", class: "form-label fw-semibold" %>
+      <%= form.number_field :map_y, min: 0, max: 100, class: "form-control", placeholder: "0-100" %>
+    </div>
+  </div>
+
+  <div class="d-flex flex-column flex-sm-row gap-2 mt-4">
+    <%= form.submit(place.persisted? ? "Mekanı Güncelle" : "Mekan Oluştur", class: "btn btn-dark rounded-pill px-4") %>
+    <%= link_to "İptal", places_path, class: "btn btn-outline-dark rounded-pill px-4" %>
+  </div>
+<% end %>

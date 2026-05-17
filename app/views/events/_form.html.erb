@@ -1,0 +1,76 @@
+<%= form_with(model: event, class: "bg-white border rounded-3 shadow-sm p-4 p-md-5") do |form| %>
+  <% if event.errors.any? %>
+    <div class="alert alert-danger rounded-3">
+      <h2 class="h5 fw-bold">Bu etkinlik kaydedilemedi. Lütfen alanları kontrol et:</h2>
+      <ul>
+        <% event.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= form.label :title, "Etkinlik adı", class: "form-label fw-semibold" %>
+    <%= form.text_field :title, class: "form-control form-control-lg", placeholder: "Bahar Konseri" %>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <%= form.label :event_type, "Etkinlik türü", class: "form-label fw-semibold" %>
+      <%= form.select :event_type,
+          ["Konser", "Söyleşi", "Kulüp", "Spor", "Atölye", "Duyuru", "Diğer"],
+          { prompt: "Tür seç" },
+          class: "form-select form-select-lg" %>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <%= form.label :starts_at, "Başlangıç zamanı", class: "form-label fw-semibold" %>
+      <%= form.datetime_local_field :starts_at, class: "form-control form-control-lg" %>
+    </div>
+  </div>
+
+  <div class="mb-3 mt-3">
+    <%= form.label :description, "Açıklama", class: "form-label fw-semibold" %>
+    <%= form.text_area :description, rows: 5, class: "form-control", placeholder: "Etkinlik hakkında kısa bilgi yaz." %>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <%= form.label :location, "Konum", class: "form-label fw-semibold" %>
+      <%= form.text_field :location, class: "form-control", placeholder: "Ana Amfi" %>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <%= form.label :place_id, "Bağlı mekan", class: "form-label fw-semibold" %>
+      <%= form.collection_select :place_id, Place.order(:name), :id, :name, { include_blank: "Mekan seçmeden devam et" }, class: "form-select" %>
+    </div>
+  </div>
+
+  <div class="ticket-form-panel mt-4">
+    <div class="form-check form-switch mb-3">
+      <%= form.check_box :ticket_required, class: "form-check-input", role: "switch" %>
+      <%= form.label :ticket_required, "Bu etkinlik için bilet gerekiyor", class: "form-check-label fw-semibold" %>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-12 col-md-4">
+        <%= form.label :ticket_price, "Bilet ücreti", class: "form-label fw-semibold" %>
+        <div class="input-group">
+          <span class="input-group-text">₺</span>
+          <%= form.number_field :ticket_price, step: 0.01, min: 0, class: "form-control", placeholder: "150" %>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-8">
+        <%= form.label :ticket_url, "Bilet bağlantısı", class: "form-label fw-semibold" %>
+        <%= form.url_field :ticket_url, class: "form-control", placeholder: "https://..." %>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex flex-column flex-sm-row gap-2 mt-4">
+    <%= form.submit(event.persisted? ? "Etkinliği Güncelle" : "Etkinlik Oluştur", class: "btn btn-dark rounded-pill px-4") %>
+    <%= link_to "İptal", events_path, class: "btn btn-outline-dark rounded-pill px-4" %>
+  </div>
+<% end %>

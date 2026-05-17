@@ -1,0 +1,55 @@
+<% content_for :auth_page, true %>
+
+<main class="auth-landing">
+  <section class="auth-panel">
+    <%= link_to root_path, class: "auth-emblem" do %>
+      <span>CF</span>
+    <% end %>
+
+    <div class="auth-heading">
+      <h1>CampusFlow</h1>
+      <p>Atatürk Üniversitesi kampüs giriş sistemi</p>
+    </div>
+
+    <div class="auth-card auth-card-glass">
+      <div class="auth-tabs">
+        <span class="active"><i class="bi bi-box-arrow-in-right"></i> Giriş</span>
+        <%= link_to "Kayıt Ol", signup_path %>
+      </div>
+
+      <h2>Sisteme giriş yap</h2>
+      <p class="auth-card-copy">Kampüs mekanlarına, etkinliklere ve bilet işlemlerine eriş.</p>
+
+      <% if alert.present? %>
+        <div class="alert alert-danger rounded-3">
+          <%= alert %>
+        </div>
+      <% end %>
+
+      <%= form_with url: login_path do |form| %>
+        <div class="mb-3">
+          <%= form.label :email, "E-posta", class: "form-label fw-semibold" %>
+          <div class="auth-input-wrap">
+            <i class="bi bi-envelope"></i>
+            <%= form.email_field :email, class: "form-control form-control-lg", placeholder: "ornek@kampus.edu" %>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <%= form.label :password, "Şifre", class: "form-label fw-semibold" %>
+          <div class="auth-input-wrap">
+            <i class="bi bi-lock"></i>
+            <%= form.password_field :password, class: "form-control form-control-lg", placeholder: "Şifren" %>
+          </div>
+        </div>
+
+        <%= form.submit "Giriş Yap", class: "btn auth-submit w-100" %>
+      <% end %>
+    </div>
+
+    <div class="auth-bottom-card">
+      <span>Hesabın yok mu?</span>
+      <%= link_to "Yeni hesap oluştur", signup_path %>
+    </div>
+  </section>
+</main>

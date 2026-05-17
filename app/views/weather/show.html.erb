@@ -1,0 +1,151 @@
+<% current_summary = @forecast.weather_summary(@current_weather["weather_code"]) if @current_weather.present? %>
+<% current_icon = @forecast.weather_icon(@current_weather["weather_code"]) if @current_weather.present? %>
+<% current_tone = @forecast.weather_tone(@current_weather["weather_code"]) if @current_weather.present? %>
+
+<div class="weather-page">
+  <section class="weather-hero weather-hero-<%= current_tone || 'cloudy' %> mb-4">
+    <div class="weather-hero-main">
+      <span class="weather-eyebrow">Atatürk Üniversitesi Kampüsü</span>
+      <h1>Kampüs hava durumu</h1>
+      <p>
+        Açık alanları, etkinlikleri ve gün içi planlarını hava tahminine göre düzenle.
+      </p>
+
+      <% if @current_weather.present? %>
+        <div class="weather-current">
+          <i class="bi <%= current_icon %>"></i>
+          <div>
+            <strong><%= @current_weather["temperature_2m"] %>°C</strong>
+            <span><%= current_summary %></span>
+          </div>
+        </div>
+      <% else %>
+        <div class="weather-current weather-current-muted">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <div>
+            <strong>Veri alınamadı</strong>
+            <span>Hava durumu servisine şu an ulaşılamıyor.</span>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="weather-hero-side">
+      <div>
+        <span>Bugün</span>
+        <strong><%= Date.current.strftime("%d.%m.%Y") %></strong>
+      </div>
+      <div>
+        <span>Konum</span>
+        <strong>Erzurum Yakutiye</strong>
+      </div>
+    </div>
+  </section>
+
+  <% if @current_weather.present? %>
+    <section class="weather-stat-grid mb-4">
+      <article class="weather-stat-card">
+        <i class="bi bi-umbrella-fill"></i>
+        <span>Yağış</span>
+        <strong><%= @current_weather["precipitation"] || 0 %> mm</strong>
+      </article>
+
+      <article class="weather-stat-card">
+        <i class="bi bi-wind"></i>
+        <span>Rüzgar</span>
+        <strong><%= @current_weather["wind_speed_10m"] %> km/sa</strong>
+      </article>
+
+      <article class="weather-stat-card">
+        <i class="bi bi-calendar-event-fill"></i>
+        <span>Etkinlik Kontrolü</span>
+        <strong><%= @event_weather.count { |item| item[:risky] } %> uyarı</strong>
+      </article>
+
+      <article class="weather-stat-card">
+        <i class="bi bi-compass-fill"></i>
+        <span>Kampüs Kullanımı</span>
+        <strong><%= @forecast.bad_weather?(@event_weather.first&.dig(:forecast)) ? "Dikkatli" : "Uygun" %></strong>
+      </article>
+    </section>
+  <% end %>
+
+  <div class="row g-4">
+    <div class="col-12 col-xl-8">
+      <section class="weather-panel h-100">
+        <div class="weather-panel-header">
+          <div>
+            <span class="weather-eyebrow">10 günlük görünüm</span>
+            <h2>Günlük tahmin</h2>
+          </div>
+        </div>
+
+        <% if @daily_weather.any? %>
+          <div class="weather-forecast-grid">
+            <% @daily_weather.each_with_index do |day, index| %>
+              <% day_date = Date.parse(day[:date]) %>
+              <% day_tone = @forecast.weather_tone(day[:weather_code]) %>
+
+              <article class="weather-forecast-card weather-forecast-<%= day_tone %>">
+                <div class="weather-day-name">
+                  <strong><%= index.zero? ? "Bugün" : day_date.strftime("%d.%m") %></strong>
+                  <span><%= day_date.strftime("%d.%m") %></span>
+                </div>
+
+                <i class="bi <%= @forecast.weather_icon(day[:weather_code]) %>"></i>
+
+                <div class="weather-temp-range">
+                  <strong><%= day[:max_temperature] %>°</strong>
+                  <span><%= day[:min_temperature] %>°</span>
+                </div>
+
+                <p><%= day[:summary] %></p>
+
+                <div class="weather-mini-stats">
+                  <span><i class="bi bi-droplet-fill"></i> %<%= day[:precipitation_probability] %></span>
+                  <span><i class="bi bi-wind"></i> <%= day[:wind_speed] %> km/sa</span>
+                </div>
+              </article>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="text-muted mb-0">Tahmin verisi alınamadı.</p>
+        <% end %>
+      </section>
+    </div>
+
+    <div class="col-12 col-xl-4">
+      <section class="weather-panel h-100">
+        <div class="weather-panel-header">
+          <div>
+            <span class="weather-eyebrow">Etkinlik etkisi</span>
+            <h2>Hava uyarıları</h2>
+          </div>
+        </div>
+
+        <div class="weather-event-list">
+          <% @event_weather.each do |item| %>
+            <% event = item[:event] %>
+            <% forecast = item[:forecast] %>
+
+            <%= link_to event_path(event), class: "weather-event-alert #{item[:risky] ? 'is-risky' : 'is-clear'}" do %>
+              <div>
+                <strong><%= event.title %></strong>
+                <span><%= l(event.starts_at, format: :short) %> · <%= event.location %></span>
+              </div>
+
+              <% if forecast.present? %>
+                <small>
+                  <i class="bi <%= @forecast.weather_icon(forecast[:weather_code]) %>"></i>
+                  <%= item[:risky] ? "Riskli" : "Uygun" %>
+                </small>
+              <% else %>
+                <small>Veri yok</small>
+              <% end %>
+            <% end %>
+          <% end %>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,67 @@
+<% if notice.present? %>
+  <div class="alert alert-success rounded-3 border-0 shadow-sm">
+    <%= notice %>
+  </div>
+<% end %>
+
+<div class="mb-4">
+  <%= link_to "Mekanlara Dön", places_path, class: "btn btn-outline-dark rounded-pill px-4" %>
+</div>
+
+<div class="row g-4 align-items-start">
+  <div class="col-12 col-lg-8">
+    <div class="bg-white border rounded-3 shadow-sm p-4 p-md-5">
+      <span class="badge text-bg-dark rounded-pill px-3 py-2 mb-3">
+        <%= @place.category %>
+      </span>
+
+      <h1 class="display-6 fw-bold mb-3">
+        <%= @place.name %>
+      </h1>
+
+      <p class="lead text-muted mb-0">
+        <%= @place.description %>
+      </p>
+
+      <% if @place.location_label.present? %>
+        <div class="location-note mt-4">
+          <strong>Konum:</strong> <%= @place.location_label %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-4">
+    <div class="bg-white border rounded-3 shadow-sm p-4">
+      <h2 class="h5 fw-bold mb-3">Mekan Puanları</h2>
+
+      <div class="mb-3">
+        <div class="d-flex justify-content-between mb-1">
+          <span class="fw-semibold">WiFi</span>
+          <span><%= @place.wifi_score %>/10</span>
+        </div>
+        <div class="progress" role="progressbar" aria-label="WiFi puanı" aria-valuenow="<%= @place.wifi_score %>" aria-valuemin="0" aria-valuemax="10">
+          <div class="progress-bar bg-dark" style="width: <%= @place.wifi_score.to_i * 10 %>%"></div>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <div class="d-flex justify-content-between mb-1">
+          <span class="fw-semibold">Sessizlik</span>
+          <span><%= @place.quiet_score %>/10</span>
+        </div>
+        <div class="progress" role="progressbar" aria-label="Sessizlik puanı" aria-valuenow="<%= @place.quiet_score %>" aria-valuemin="0" aria-valuemax="10">
+          <div class="progress-bar bg-dark" style="width: <%= @place.quiet_score.to_i * 10 %>%"></div>
+        </div>
+      </div>
+
+      <div class="d-grid gap-2">
+        <%= link_to "Haritada Gör", campus_map_path(place_id: @place.id), class: "btn btn-outline-dark rounded-pill" %>
+        <% if admin_signed_in? %>
+          <%= link_to "Mekanı Düzenle", edit_place_path(@place), class: "btn btn-dark rounded-pill" %>
+          <%= button_to "Mekanı Sil", @place, method: :delete, class: "btn btn-outline-danger rounded-pill w-100", form: { data: { turbo_confirm: "Bu mekanı silmek istiyor musun?" } } %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CampusFlow</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= favicon_link_tag "/favicon.svg", type: "image/svg+xml" %>
+
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+    <%= yield :head %>
+  </head>
+
+  <body class="app-body <%= content_for?(:auth_page) ? 'auth-body' : '' %>">
+    <% if content_for?(:auth_page) %>
+      <%= yield %>
+    <% else %>
+      <nav class="navbar navbar-expand-lg app-navbar px-4">
+        <a class="navbar-brand fw-bold" href="/">
+          CampusFlow
+        </a>
+
+        <div class="ms-auto d-flex align-items-center gap-2">
+          <%= link_to "Mekanları Keşfet", places_path, class: "btn btn-outline-dark rounded-pill" %>
+          <%= link_to "Etkinlikler", events_path, class: "btn btn-outline-dark rounded-pill" %>
+          <%= link_to "Harita", campus_map_path, class: "btn btn-outline-dark rounded-pill" %>
+          <%= link_to "Bildirimler", notifications_path, class: "btn btn-outline-dark rounded-pill" %>
+          <% if admin_signed_in? %>
+            <%= link_to "Admin Paneli", admin_dashboard_path, class: "btn navbar-admin rounded-pill" %>
+          <% end %>
+
+          <% if user_signed_in? %>
+            <span class="navbar-user d-none d-md-inline">
+              <%= current_user.name %> · <%= current_user.role_name %>
+            </span>
+            <%= button_to "Çıkış", logout_path, method: :delete, class: "btn navbar-logout rounded-pill", form_class: "d-inline" %>
+          <% else %>
+            <%= link_to "Giriş", login_path, class: "btn btn-outline-dark rounded-pill" %>
+            <%= link_to "Kayıt Ol", signup_path, class: "btn navbar-logout rounded-pill" %>
+          <% end %>
+        </div>
+      </nav>
+
+      <div class="container py-5">
+        <% if alert.present? %>
+          <div class="alert alert-danger rounded-3 border-0 shadow-sm">
+            <%= alert %>
+          </div>
+        <% end %>
+
+        <%= yield %>
+      </div>
+    <% end %>
+  </body>
+</html>

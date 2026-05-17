@@ -1,0 +1,110 @@
+<% if notice.present? %>
+  <div class="alert alert-success rounded-3 border-0 shadow-sm">
+    <%= notice %>
+  </div>
+<% end %>
+
+<div class="mb-4">
+  <%= link_to "Etkinliklere Dön", events_path, class: "btn btn-outline-dark rounded-pill px-4" %>
+</div>
+
+<div class="row g-4 align-items-start">
+  <div class="col-12 col-lg-8">
+    <div class="bg-white border rounded-3 shadow-sm p-4 p-md-5">
+      <span class="category-pill rounded-pill px-3 py-2 mb-3 d-inline-block">
+        <%= @event.event_type %>
+      </span>
+
+      <h1 class="display-6 fw-bold mb-3"><%= @event.title %></h1>
+      <p class="lead text-muted mb-0"><%= @event.description %></p>
+
+      <% if @event.ticket_required? %>
+        <div class="ticket-callout mt-4">
+          <div>
+            <span>Biletli etkinlik</span>
+            <strong><%= number_to_currency(@event.ticket_price, unit: "₺", format: "%n %u") %></strong>
+          </div>
+
+          <%= link_to "Bilet Al", new_event_ticket_path(@event), class: "btn btn-dark rounded-pill px-4" %>
+        </div>
+      <% else %>
+        <div class="ticket-callout is-free mt-4">
+          <div>
+            <span>Bilet durumu</span>
+            <strong>Ücretsiz katılım</strong>
+          </div>
+        </div>
+      <% end %>
+
+      <% if @event_weather.present? %>
+        <div class="ticket-weather-alert <%= @weather_risky ? 'is-risky' : 'is-clear' %> mt-4">
+          <i class="bi <%= @forecast.weather_icon(@event_weather[:weather_code]) %>"></i>
+          <div>
+            <% if @weather_risky && @event.ticket_required? %>
+              <strong>Bilet almadan önce dikkat</strong>
+              <span>
+                Etkinlik günü hava olumsuz görünüyor: <%= @event_weather[:summary] %>,
+                yağış olasılığı %<%= @event_weather[:precipitation_probability] %>,
+                rüzgar <%= @event_weather[:wind_speed] %> km/sa.
+                <%= "Etkinlik açık alanda olduğu için iptal veya yer değişikliği riski var." if @event.outdoor? %>
+              </span>
+            <% elsif @weather_risky %>
+              <strong>Hava uyarısı</strong>
+              <span>
+                Etkinlik günü hava olumsuz görünüyor: <%= @event_weather[:summary] %>,
+                yağış olasılığı %<%= @event_weather[:precipitation_probability] %>.
+              </span>
+            <% else %>
+              <strong>Hava uygun görünüyor</strong>
+              <span>
+                Etkinlik saatine en yakın tahmin: <%= @event_weather[:summary] %>,
+                <%= @event_weather[:temperature] %>°C.
+              </span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-4">
+    <div class="bg-white border rounded-3 shadow-sm p-4">
+      <h2 class="h5 fw-bold mb-3">Etkinlik Bilgileri</h2>
+
+      <div class="detail-row">
+        <span>Tarih</span>
+        <strong><%= l(@event.starts_at, format: :long) %></strong>
+      </div>
+
+      <div class="detail-row">
+        <span>Konum</span>
+        <strong><%= @event.location %></strong>
+      </div>
+
+      <% if @event.place.present? %>
+        <div class="detail-row">
+          <span>Bağlı mekan</span>
+          <strong><%= link_to @event.place.name, @event.place, class: "text-dark" %></strong>
+        </div>
+      <% end %>
+
+      <div class="detail-row">
+        <span>Bilet</span>
+        <strong>
+          <% if @event.ticket_required? %>
+            <%= number_to_currency(@event.ticket_price, unit: "₺", format: "%n %u") %>
+          <% else %>
+            Ücretsiz
+          <% end %>
+        </strong>
+      </div>
+
+      <div class="d-grid gap-2 mt-4">
+        <% if admin_signed_in? %>
+          <%= link_to "Etkinliği Düzenle", edit_event_path(@event), class: "btn btn-dark rounded-pill" %>
+          <%= button_to "Etkinliği Sil", @event, method: :delete, class: "btn btn-outline-danger rounded-pill w-100", form: { data: { turbo_confirm: "Bu etkinliği silmek istiyor musun?" } } %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

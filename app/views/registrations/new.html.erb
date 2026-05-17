@@ -1,0 +1,84 @@
+<% content_for :auth_page, true %>
+
+<main class="auth-landing">
+  <section class="auth-panel">
+    <%= link_to root_path, class: "auth-emblem" do %>
+      <span>CF</span>
+    <% end %>
+
+    <div class="auth-heading">
+      <h1>CampusFlow</h1>
+      <p>Atatürk Üniversitesi kampüs giriş sistemi</p>
+    </div>
+
+    <div class="auth-card auth-card-glass">
+      <div class="auth-tabs">
+        <%= link_to "Giriş", login_path %>
+        <span class="active"><i class="bi bi-person-plus"></i> Kayıt Ol</span>
+      </div>
+
+      <h2>Yeni hesap oluştur</h2>
+      <p class="auth-card-copy">Kampüs akışına katılmak için bilgilerini gir.</p>
+
+      <%= form_with model: @user, url: signup_path do |form| %>
+        <% if @user.errors.any? %>
+          <div class="alert alert-danger rounded-3">
+            <h3 class="h6 fw-bold">Hesap oluşturulamadı. Alanları kontrol et:</h3>
+            <ul class="mb-0">
+              <% @user.errors.each do |error| %>
+                <li><%= error.full_message %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <div class="mb-3">
+          <%= form.label :name, "Ad soyad", class: "form-label fw-semibold" %>
+          <div class="auth-input-wrap">
+            <i class="bi bi-person"></i>
+            <%= form.text_field :name, class: "form-control form-control-lg", placeholder: "Ayşe Yılmaz" %>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <%= form.label :email, "E-posta", class: "form-label fw-semibold" %>
+          <div class="auth-input-wrap">
+            <i class="bi bi-envelope"></i>
+            <%= form.email_field :email, class: "form-control form-control-lg", placeholder: "ornek@kampus.edu" %>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <%= form.label :role, "Hesap türü", class: "form-label fw-semibold" %>
+          <%= form.select :role,
+              options_for_select([["Normal kullanıcı", "user"], ["Admin", "admin"]], @user.role || "user"),
+              {},
+              class: "form-select form-select-lg auth-role-select" %>
+        </div>
+
+        <div class="mb-3">
+          <%= form.label :password, "Şifre", class: "form-label fw-semibold" %>
+          <div class="auth-input-wrap">
+            <i class="bi bi-lock"></i>
+            <%= form.password_field :password, class: "form-control form-control-lg", placeholder: "En az 6 karakter" %>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <%= form.label :password_confirmation, "Şifre tekrarı", class: "form-label fw-semibold" %>
+          <div class="auth-input-wrap">
+            <i class="bi bi-shield-check"></i>
+            <%= form.password_field :password_confirmation, class: "form-control form-control-lg", placeholder: "Şifreni tekrar yaz" %>
+          </div>
+        </div>
+
+        <%= form.submit "Hesap Oluştur", class: "btn auth-submit w-100" %>
+      <% end %>
+    </div>
+
+    <div class="auth-bottom-card">
+      <span>Zaten hesabın var mı?</span>
+      <%= link_to "Giriş yap", login_path %>
+    </div>
+  </section>
+</main>

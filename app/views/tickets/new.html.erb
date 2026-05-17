@@ -1,0 +1,137 @@
+<div class="mb-4">
+  <%= link_to "Etkinliğe Dön", event_path(@event), class: "btn btn-outline-dark rounded-pill px-4" %>
+</div>
+
+<div class="row g-4 align-items-start">
+  <div class="col-12 col-lg-7">
+    <div class="bg-white border rounded-3 shadow-sm p-4 p-md-5">
+      <span class="category-pill rounded-pill px-3 py-2 mb-3 d-inline-block">
+        Bilet işlemi
+      </span>
+
+      <h1 class="display-6 fw-bold mb-3"><%= @event.title %></h1>
+      <p class="lead text-muted mb-4">
+        Bilet adedini seç. Hava durumu riskliyse satın almadan önce uyarıyı kontrol et.
+      </p>
+
+      <% if @event_weather.present? %>
+        <div class="ticket-weather-alert <%= @weather_risky ? 'is-risky' : 'is-clear' %> mb-4">
+          <i class="bi <%= @forecast.weather_icon(@event_weather[:weather_code]) %>"></i>
+          <div>
+            <% if @weather_risky %>
+              <strong>Bilet almadan önce dikkat</strong>
+              <span>
+                Etkinlik günü hava olumsuz görünüyor: <%= @event_weather[:summary] %>,
+                yağış olasılığı %<%= @event_weather[:precipitation_probability] %>,
+                rüzgar <%= @event_weather[:wind_speed] %> km/sa.
+                <%= "Açık alan etkinliği olduğu için iptal veya yer değişikliği riski var." if @event.outdoor? %>
+              </span>
+            <% else %>
+              <strong>Hava uygun görünüyor</strong>
+              <span><%= @event_weather[:summary] %>, <%= @event_weather[:temperature] %>°C.</span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <%= form_with model: [@event, @ticket], class: "ticket-purchase-form" do |form| %>
+        <% if @ticket.errors.any? %>
+          <div class="alert alert-danger rounded-3">
+            <strong>Ödeme tamamlanamadı.</strong>
+            <ul class="mb-0 mt-2">
+              <% @ticket.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <div class="ticket-step mb-4">
+          <span>1</span>
+          <div>
+            <h2>Bilet adedi</h2>
+            <p>Tek işlemde en fazla 5 bilet alınabilir.</p>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <%= form.label :quantity, "Bilet adedi", class: "form-label fw-semibold" %>
+          <%= form.number_field :quantity, min: 1, max: 5, value: @ticket.quantity || 1, class: "form-control form-control-lg" %>
+        </div>
+
+        <div class="ticket-step mb-4">
+          <span>2</span>
+          <div>
+            <h2>Ödeme bilgileri</h2>
+            <p>Kart bilgileri doğrulanır; kart numarasının tamamı saklanmaz.</p>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <%= form.label :card_holder_name, "Kart üzerindeki ad soyad", class: "form-label fw-semibold" %>
+          <%= form.text_field :card_holder_name, class: "form-control", placeholder: "Ahmet Enis Özcan" %>
+        </div>
+
+        <div class="mb-3">
+          <%= form.label :card_number, "Kart numarası", class: "form-label fw-semibold" %>
+          <%= form.text_field :card_number, inputmode: "numeric", maxlength: 19, class: "form-control", placeholder: "0000 0000 0000 0000" %>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-6 col-md-4">
+            <%= form.label :expiry_month, "Ay", class: "form-label fw-semibold" %>
+            <%= form.select :expiry_month, options_for_select((1..12).map { |month| [format('%02d', month), month] }), { prompt: "Ay" }, class: "form-select" %>
+          </div>
+
+          <div class="col-6 col-md-4">
+            <%= form.label :expiry_year, "Yıl", class: "form-label fw-semibold" %>
+            <%= form.select :expiry_year, options_for_select((Date.current.year..(Date.current.year + 10)).to_a), { prompt: "Yıl" }, class: "form-select" %>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <%= form.label :cvv, "CVV", class: "form-label fw-semibold" %>
+            <%= form.password_field :cvv, inputmode: "numeric", maxlength: 4, class: "form-control", placeholder: "123" %>
+          </div>
+        </div>
+
+        <div class="ticket-step my-4">
+          <span>3</span>
+          <div>
+            <h2>IBAN kontrolü</h2>
+            <p>Türkiye IBAN'ı TR ile başlamalı ve toplam 26 karakter olmalıdır.</p>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <%= form.label :payer_iban, "Ödeme yapan IBAN", class: "form-label fw-semibold" %>
+          <%= form.text_field :payer_iban, class: "form-control form-control-lg", placeholder: "TR000000000000000000000000" %>
+        </div>
+
+        <%= form.submit "Ödemeyi Onayla ve Bileti Al", class: "btn btn-dark rounded-pill px-4" %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-5">
+    <div class="ticket-summary-card">
+      <span>Ödeme özeti</span>
+      <h2><%= number_to_currency(@event.ticket_price, unit: "₺", format: "%n %u") %></h2>
+      <p>Tek bilet fiyatı</p>
+
+      <div class="detail-row">
+        <span>Tarih</span>
+        <strong><%= l(@event.starts_at, format: :long) %></strong>
+      </div>
+
+      <div class="detail-row">
+        <span>Konum</span>
+        <strong><%= @event.location %></strong>
+      </div>
+
+      <div class="detail-row">
+        <span>Durum</span>
+        <strong><%= @weather_risky ? "Hava uyarısı var" : "Satın almaya uygun" %></strong>
+      </div>
+    </div>
+  </div>
+</div>
